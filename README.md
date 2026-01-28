@@ -46,9 +46,7 @@ When you buy groceries, you see brand names — but who actually owns these bran
 | Product | Brand | Parent Company | Jurisdiction |
 |---------|-------|----------------|--------------|
 | Nesquik | Nesquik | Nestlé S.A. | 🇨🇭 Switzerland |
-| Nutella | Nutella | Ferrero Group | 🇱🇺 Luxembourg |
 | G&G Mohren | Gut & Günstig | EDEKA Group | 🇩🇪 Germany |
-| Ariel Pods | Ariel | Procter & Gamble | 🇺🇸 United States |
 
 ---
 
