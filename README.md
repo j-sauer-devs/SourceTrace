@@ -173,14 +173,13 @@ MIT License — see [LICENSE](LICENSE)
 
 **Julian Sauer**
 
-- LinkedIn: [your-linkedin]
+- LinkedIn: [julian-s](https://www.linkedin.com/in/julian-s-ab95581b9)
 - GitHub: [@JULIAN-SAUER-DEV](https://github.com/JULIAN-SAUER-DEV)
 
 ---
 
 ## 🙏 Acknowledgments
 
-- [Open Food Facts](https://openfoodfacts.org) — Open product database
 - [n8n](https://n8n.io) — Workflow automation
 - [Lovable](https://lovable.dev) — Frontend development
 - [Anthropic](https://anthropic.com) — Claude Vision API
@@ -188,5 +187,5 @@ MIT License — see [LICENSE](LICENSE)
 ---
 
 <p align="center">
-  <i>Built in 48 hours as a proof of concept for consumer transparency tools.</i>
+  <i>Built as a proof of concept for consumer transparency tools.</i>
 </p>
