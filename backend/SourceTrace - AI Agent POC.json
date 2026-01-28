@@ -1,0 +1,267 @@
+{
+  "name": "SourceTrace - AI Agent POC",
+  "nodes": [
+    {
+      "parameters": {
+        "httpMethod": "POST",
+        "path": "analyze-receipt",
+        "responseMode": "responseNode",
+        "options": {
+          "binaryPropertyName": "image"
+        }
+      },
+      "id": "5295f273-0b61-41ca-86e1-4add110450c6",
+      "name": "Receive Receipt",
+      "type": "n8n-nodes-base.webhook",
+      "typeVersion": 2.1,
+      "position": [
+        912,
+        256
+      ],
+      "webhookId": "4cd5d0b3-7f2b-4a40-a52d-14df3f620b7c"
+    },
+    {
+      "parameters": {
+        "respondWith": "json",
+        "responseBody": "={{ $json }}",
+        "options": {}
+      },
+      "id": "77fab758-5cad-4c3a-a266-444d5e8836be",
+      "name": "Return JSON to Frontend",
+      "type": "n8n-nodes-base.respondToWebhook",
+      "typeVersion": 1.5,
+      "position": [
+        1968,
+        256
+      ]
+    },
+    {
+      "parameters": {
+        "jsonSchemaExample": "{\n  \"items\": [\n    {\n      \"productName\": \"Tide Pods 42ct\",\n      \"brandName\": \"Tide\",\n      \"parentCompany\": \"Procter & Gamble\",\n      \"jurisdiction\": \"United States\",\n      \"jurisdictionCode\": \"US\",\n      \"amount\": 12.49\n    }\n  ],\n  \"ownershipBreakdown\": [\n    {\n      \"jurisdiction\": \"United States\",\n      \"jurisdictionCode\": \"US\",\n      \"flagEmoji\": \"🇺🇸\",\n      \"totalAmount\": 21.78,\n      \"percentage\": 41.9,\n      \"itemCount\": 2\n    }\n  ],\n  \"totalAmount\": 52.00,\n  \"currency\": \"EUR\"\n}",
+        "autoFix": true
+      },
+      "type": "@n8n/n8n-nodes-langchain.outputParserStructured",
+      "typeVersion": 1.3,
+      "position": [
+        1792,
+        480
+      ],
+      "id": "a959c037-cefe-4d04-9307-67e3ae44b97b",
+      "name": "Structured Output Parser"
+    },
+    {
+      "parameters": {
+        "promptType": "define",
+        "text": "Extract all data from this receipt image. Return ONLY the raw receipt data, no analysis.\n\nReturn JSON:\n{\n  \"store\": {\n    \"name\": \"Store name from receipt\",\n    \"location\": \"Address if visible\",\n    \"date\": \"YYYY-MM-DD\"\n  },\n  \"items\": [\n    {\n      \"name\": \"Product name exactly as shown\",\n      \"price\": 0.00,\n      \"quantity\": 1,\n      \"unit_price\": null\n    }\n  ],\n  \"subtotal\": 0.00,\n  \"tax\": 0.00,\n  \"total\": 0.00,\n  \"payment_method\": \"Card/Cash\"\n}\n\nRules:\n- Extract EXACTLY what's on the receipt\n- Don't guess or interpret brand names\n- Use null for missing values\n- Prices in EUR",
+        "options": {}
+      },
+      "type": "@n8n/n8n-nodes-langchain.agent",
+      "typeVersion": 3.1,
+      "position": [
+        1136,
+        256
+      ],
+      "id": "614b13ff-5d45-4b17-85ce-521792f5b1ea",
+      "name": "AI Agent - Claude Vision Receipt Reader"
+    },
+    {
+      "parameters": {
+        "model": "anthropic/claude-3.5-sonnet",
+        "options": {}
+      },
+      "type": "@n8n/n8n-nodes-langchain.lmChatOpenRouter",
+      "typeVersion": 1,
+      "position": [
+        1136,
+        416
+      ],
+      "id": "3bf194ac-c13d-4ec8-90b6-d49e3f29237f",
+      "name": "Claude 3.5 Sonnet",
+      "credentials": {
+        "openRouterApi": {
+          "id": "RKRNA1IkIoISuHXT",
+          "name": "OpenRouter account"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "model": "anthropic/claude-3-haiku",
+        "options": {
+          "maxTokens": 3000
+        }
+      },
+      "type": "@n8n/n8n-nodes-langchain.lmChatOpenRouter",
+      "typeVersion": 1,
+      "position": [
+        1504,
+        448
+      ],
+      "id": "a9d60b07-c737-45b5-b194-5cbcadbf9ee0",
+      "name": "Claude 3 Haiku",
+      "credentials": {
+        "openRouterApi": {
+          "id": "RKRNA1IkIoISuHXT",
+          "name": "OpenRouter account"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "options": {}
+      },
+      "type": "@n8n/n8n-nodes-langchain.lmChatOpenRouter",
+      "typeVersion": 1,
+      "position": [
+        1792,
+        624
+      ],
+      "id": "a2de429a-6414-46ca-979a-65f88797928a",
+      "name": "GPT 4.1 Mini",
+      "credentials": {
+        "openRouterApi": {
+          "id": "RKRNA1IkIoISuHXT",
+          "name": "OpenRouter account"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "options": {}
+      },
+      "type": "@n8n/n8n-nodes-langchain.toolSerpApi",
+      "typeVersion": 1,
+      "position": [
+        1632,
+        448
+      ],
+      "id": "bc7ddc16-7b6a-4a30-84e2-df225237fe12",
+      "name": "Search Engine",
+      "credentials": {
+        "serpApi": {
+          "id": "BMx08P1pru62d5GF",
+          "name": "SerpAPI account"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "promptType": "define",
+        "text": "=Analyze this receipt data and determine corporate ownership.\n\nReceipt Data:\n{{ $json }}\n\nFor each item:\n1. Identify the brand (may differ from product name)\n2. Use SerpAPI to find parent company if uncertain\n3. Determine jurisdiction of incorporation\n\nStore brand rules:\n- EDEKA, Gut&Günstig, G&G → EDEKA Group → DE\n- REWE, ja! → REWE Group → DE\n- Products without clear brand → Assign to store\n\nReturn JSON:\n{\n  \"receiptMetadata\": {\n    \"storeName\": \"\",\n    \"storeParentCompany\": \"\",\n    \"storeJurisdictionCode\": \"XX\",\n    \"date\": \"\"\n  },\n  \"items\": [\n    {\n      \"productName\": \"\",\n      \"brandName\": \"\",\n      \"parentCompany\": \"\",\n      \"jurisdictionCode\": \"XX\",\n      \"amount\": 0.00,\n      \"isStoreBrand\": true/false\n    }\n  ],\n  \"ownershipBreakdown\": [\n    {\n      \"jurisdictionCode\": \"XX\",\n      \"flagEmoji\": \"🏳\",\n      \"totalAmount\": 0.00,\n      \"percentage\": 0.0,\n      \"itemCount\": 0\n    }\n  ],\n  \"totalAmount\": 0.00,\n  \"currency\": \"EUR\"\n}\n\nFlags: 🇩🇪DE 🇨🇭CH 🇺🇸US 🇬🇧GB 🇫🇷FR 🇦🇹AT 🇱🇺LU 🌐Unknown",
+        "hasOutputParser": true,
+        "options": {}
+      },
+      "type": "@n8n/n8n-nodes-langchain.agent",
+      "typeVersion": 3.1,
+      "position": [
+        1536,
+        256
+      ],
+      "id": "d8ed2d4d-4d1f-4b78-8953-9ab045ce4197",
+      "name": "AI Agent - Ownership Analyst"
+    }
+  ],
+  "pinData": {},
+  "connections": {
+    "Receive Receipt": {
+      "main": [
+        [
+          {
+            "node": "AI Agent - Claude Vision Receipt Reader",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Structured Output Parser": {
+      "ai_outputParser": [
+        [
+          {
+            "node": "AI Agent - Ownership Analyst",
+            "type": "ai_outputParser",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "AI Agent - Claude Vision Receipt Reader": {
+      "main": [
+        [
+          {
+            "node": "AI Agent - Ownership Analyst",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Claude 3.5 Sonnet": {
+      "ai_languageModel": [
+        [
+          {
+            "node": "AI Agent - Claude Vision Receipt Reader",
+            "type": "ai_languageModel",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Claude 3 Haiku": {
+      "ai_languageModel": [
+        [
+          {
+            "node": "AI Agent - Ownership Analyst",
+            "type": "ai_languageModel",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "GPT 4.1 Mini": {
+      "ai_languageModel": [
+        [
+          {
+            "node": "Structured Output Parser",
+            "type": "ai_languageModel",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Search Engine": {
+      "ai_tool": [
+        [
+          {
+            "node": "AI Agent - Ownership Analyst",
+            "type": "ai_tool",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "AI Agent - Ownership Analyst": {
+      "main": [
+        [
+          {
+            "node": "Return JSON to Frontend",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    }
+  },
+  "active": true,
+  "settings": {
+    "executionOrder": "v1",
+    "availableInMCP": false
+  },
+  "versionId": "329268e4-92ca-4efb-a096-adccb579c407",
+  "meta": {
+    "templateCredsSetupCompleted": true,
+    "instanceId": "e8a4c5ea109d18cb765d31e845b4876745e70ad46072241ba7d3562ff1e6c147"
+  },
+  "id": "928OQDjM8syaTn34flL4a",
+  "tags": []
+}
